@@ -1,27 +1,28 @@
-import React from 'react';
-import { Stage, Layer, Star, Text } from 'react-konva';
+import React, { useState } from 'react';
+import { Stage, Layer, Star } from 'react-konva';
 import { observer } from "mobx-react-lite";
-import starStore from './store/StarStore';
+import starsStore from './store/StarStore';
 
-function generateShapes() {
-  return [ ...Array( 12 ) ].map( ( _, i ) => ( {
-    id: i.toString(),
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    rotation: Math.random() * 180,
-    isDragging: false,
-  } ) );
-}
 
-const INITIAL_STATE = generateShapes();
+let arr: any = [];
+
+// return arr.map( ( _: any, i: number ) => ( {
+//   id: i.toString(),
+//   x: Math.random() * window.innerWidth,
+//   y: Math.random() * window.innerHeight,
+//   rotation: Math.random() * 180,
+//   isDragging: false,
+// } ) );
+
+// const INITIAL_STATE = [];
 
 const App = observer( () => {
-  const [ stars, setStars ] = React.useState( INITIAL_STATE );
+  const [ stars, setStars ] = useState<any>( [] );
 
   const handleDragStart = ( e: any ) => {
     const id = e.target.id();
     setStars(
-      stars.map( ( star ) => {
+      stars.map( ( star: any ) => {
         return {
           ...star,
           isDragging: star.id === id,
@@ -30,9 +31,16 @@ const App = observer( () => {
     );
   };
   const handleDragEnd = ( e: any ) => {
-    starStore.setSize( { id: e.target.id(), y: e.target.attrs.y, x: e.target.attrs.x } );
+
+    starsStore.setSize( {
+      id: e.target.id(),
+      y: e.target.attrs.y,
+      x: e.target.attrs.x,
+      width: e.target.width(),
+    } );
+
     setStars(
-      stars.map( ( star ) => {
+      stars.map( ( star: any ) => {
         return {
           ...star,
           isDragging: false,
@@ -41,13 +49,26 @@ const App = observer( () => {
     );
   };
 
+  const clickLayer = ( e: any ) => {
+    arr.push(
+      {
+        id: Math.random().toString(),
+        x: e.evt.clientX,
+        y: e.evt.clientY,
+        rotation: Math.random() * 180,
+        isDragging: false,
+      }
+    );
+    setStars( [ ...arr ] );
+    console.log('stars', stars)
+  };
+ 
   return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer>
-        <Text text="Try to drag a star" />
-        {stars.map( ( star ) => (
+    <Stage width={window.innerWidth} height={window.innerHeight} onClick={clickLayer}>
+      <Layer >
+        {stars.map( ( star: any, i:any ) => (
           <Star
-            key={star.id}
+            key={i}
             id={star.id}
             x={star.x}
             y={star.y}
