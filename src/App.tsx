@@ -1,23 +1,30 @@
-import React, { useState } from 'react';
-import { Stage, Layer, Star } from 'react-konva';
+import React, { useState, useRef, useEffect } from 'react';
+import { Stage, Layer, Star, Transformer } from 'react-konva';
 import { observer } from "mobx-react-lite";
 import starsStore from './store/StarStore';
 
 
 let arr: any = [];
 
-// return arr.map( ( _: any, i: number ) => ( {
-//   id: i.toString(),
-//   x: Math.random() * window.innerWidth,
-//   y: Math.random() * window.innerHeight,
-//   rotation: Math.random() * 180,
-//   isDragging: false,
-// } ) );
-
-// const INITIAL_STATE = [];
-
 const App = observer( () => {
+  const refs: any = [];
+
   const [ stars, setStars ] = useState<any>( [] );
+
+  const [ selectedId, selectShape ] = useState<any>( null );
+
+  const trRef = useRef<any>();
+
+  const shapeRef = useRef<any>();
+
+  useEffect( () => {
+    if ( !shapeRef.current ) {
+      return;
+    }
+    // console.log('selectedId', shapeRef)
+    trRef.current?.nodes( [ shapeRef?.current ] );
+    trRef.current?.getLayer().batchDraw();
+  }, [ selectedId ] );
 
   const handleDragStart = ( e: any ) => {
     const id = e.target.id();
@@ -50,6 +57,14 @@ const App = observer( () => {
   };
 
   const clickLayer = ( e: any ) => {
+
+    if ( e.target.getStage() !== e.target ) {
+      let curRef = refs.find( ( el: any ) => el.attrs.id === e.target.attrs.id );
+      shapeRef.current = curRef;
+      selectShape( e.target );
+      return;
+    }
+    selectShape( null );
     arr.push(
       {
         id: Math.random().toString(),
@@ -60,18 +75,19 @@ const App = observer( () => {
       }
     );
     setStars( [ ...arr ] );
-    console.log('stars', stars)
   };
- 
+
   return (
+
     <Stage width={window.innerWidth} height={window.innerHeight} onClick={clickLayer}>
       <Layer >
-        {stars.map( ( star: any, i:any ) => (
+        {stars.map( ( star: any, i: any ) => (
           <Star
             key={i}
             id={star.id}
             x={star.x}
             y={star.y}
+            ref={( ref: any ) => ref && refs.push( ref )}
             numPoints={5}
             innerRadius={20}
             outerRadius={40}
@@ -88,8 +104,21 @@ const App = observer( () => {
             scaleY={star.isDragging ? 1.2 : 1}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+
           />
         ) )}
+        {selectedId && (
+          <Transformer
+            ref={trRef}
+            boundBoxFunc={( oldBox, newBox ) => {
+              // limit resize
+              if ( newBox.width < 5 || newBox.height < 5 ) {
+                return oldBox;
+              }
+              return newBox;
+            }}
+          />
+        )}
       </Layer>
     </Stage>
   );

@@ -6,7 +6,6 @@ interface ISisez {
     y: number;
     width: number,
 }
-
 class starsStore {
     sizesShapes: any = {};
 
@@ -16,7 +15,6 @@ class starsStore {
 
     setSize( { id, x, y, width }: ISisez ) {
         this.sizesShapes[ id ] = { x, y, width };
-        console.log('sizesArr', this.sizesShapes)
     }
 }
 
