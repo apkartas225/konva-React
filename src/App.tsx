@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Stage, Layer, Transformer } from "react-konva";
+import { Stage, Layer, Transformer, Star, Rect, } from "react-konva";
 import { observer } from "mobx-react-lite";
-import starsStore from "./store/StarStore";
-import { KonvaEventObject } from "konva/lib/Node";
+
 import { Header } from "./Header";
 import { Shape } from './Shape';
 
@@ -12,7 +11,7 @@ interface ShapeItem {
   y: number;
   rotation: number;
   isDragging: boolean;
-  typeOfShape: String
+  typeOfShape: String;
 }
 
 const App = observer( () => {
@@ -21,7 +20,6 @@ const App = observer( () => {
   const [ typeOfShape, setTypeOfShape ] = useState<String>( 'Star' );
   const [ shapes, setShapes ] = useState<ShapeItem[]>( [] );
 
-  const [ rects, setRects ] = useState<ShapeItem[]>( [] );
 
 
   const [ selectedId, selectShape ] = useState<string | null>( null );
@@ -39,39 +37,8 @@ const App = observer( () => {
     trRef.current?.getLayer().batchDraw();
   }, [ selectedId ] );
 
-  const handleDragStart = ( e: KonvaEventObject<DragEvent> ) => {
-    const starNewDragStatus = shapes.map( ( star: ShapeItem ) => {
-      return star.id === e.target.id()
-        ? {
-          ...star,
-          isDragging: true,
-        }
-        : star;
-    } );
 
-    setShapes( [ ...starNewDragStatus ] );
 
-  };
-  const handleDragEnd = ( e: KonvaEventObject<DragEvent> ) => {
-    starsStore.setSize( {
-      id: e.target.id(),
-      y: e.target.attrs.y,
-      x: e.target.attrs.x,
-      width: e.target.width(),
-    } );
-
-    const starNewDragStatus = shapes.map( ( star: ShapeItem ) => {
-      return star.id === e.target.id()
-        ? {
-          ...star,
-          isDragging: false,
-        }
-        : star;
-    } );
-
-    setShapes( [ ...starNewDragStatus ] );
-
-  };
 
   const clickLayer = ( e: any ) => {
     if ( e.target.getStage() !== e.target ) {
@@ -81,8 +48,8 @@ const App = observer( () => {
 
       return;
     }
-
     selectShape( null );
+
     const newShape = {
       typeOfShape,
       id: Math.random().toString(),
@@ -91,19 +58,16 @@ const App = observer( () => {
       rotation: Math.random() * 180,
       isDragging: false,
     };
-    if (typeOfShape === 'Rect') {
-      setRects( ( prevshapes ) => [ ...prevshapes, newShape ] );
-    } else {
-      setShapes( ( prevshapes ) => [ ...prevshapes, newShape ] );
-    }
-    
-    console.log('shapes', shapes)
+
+    setShapes( ( prevshapes ) => [ ...prevshapes, newShape ] );
+
+
+    console.log( 'shapes', shapes );
 
   };
 
   const onChage = ( e: any ) => {
     setTypeOfShape( e.target.value );
-    // setShapes( [] );
   };
 
   return (
@@ -115,14 +79,12 @@ const App = observer( () => {
         onClick={clickLayer}
       >
         <Layer>
-          <Shape
-            rects={rects}
-            refs={refs}
-            shapes={shapes}
-            handleDragEnd={handleDragEnd}
-            handleDragStart={handleDragStart}
-            typeOfShape={typeOfShape}>
-          </Shape>
+          {
+            shapes.map( ( el: ShapeItem ) => {
+                return <Shape key={el.id} shape={el} setShapes={setShapes} refs={refs} shapes={shapes}></Shape>;
+              }
+            )
+          }
           {selectedId && (
             <Transformer
               ref={trRef}
